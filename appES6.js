@@ -55,6 +55,58 @@ class UI {
     }
 };
 
+// LOCAL STORAGE CLASS
+// static methods so they don't need instantiating to use them
+class Store {
+    // fetch books from storage
+    static getBooks(){
+        let books;
+        if(localStorage.getItem("books") === null) {
+            books = [];
+        } else {
+            books = JSON.parse(localStorage.getItem("books"));
+        };
+
+        return books;
+    }
+
+    // display books
+    static displayBooks(){
+        const books = Store.getBooks();
+
+        books.forEach(book => {
+            const ui = new UI;
+
+            ui.addBookToList(book);
+        });
+    }
+
+    // add book to storage
+    static addBook(book){
+        const books = Store.getBooks();
+
+        books.push(book);
+
+        localStorage.setItem("books", JSON.stringify(books));
+    }
+
+    // delete book from storage
+    static removeBook(isbn){
+        const books = Store.getBooks();
+
+        books.forEach((book, index) => {
+            if(book.isbn === isbn){
+                books.splice(index, 1);
+            }
+        });
+
+        localStorage.setItem("books", JSON.stringify(books));
+    }
+};
+
+// DOM LOAD EVENT LISTENER
+document.addEventListener("DOMContentLoaded", Store.displayBooks);
+
 // EVENT LISTENER FOR ADD BOOK
 document.getElementById('book-form').addEventListener('submit', function(e){    
     // Get form values
@@ -76,6 +128,9 @@ document.getElementById('book-form').addEventListener('submit', function(e){
         // Add book to list
         ui.addBookToList(book);
 
+        // Add book to Local Storage
+        Store.addBook(book);
+
         // show success
         ui.showAlert("Book successfully added", "success");
 
@@ -94,6 +149,9 @@ document.getElementById("book-list").addEventListener("click", function(e){
 
     // deleteBook
     ui.deleteBook(e.target);
+
+    // remove from Local Storage
+    Store.removeBook(e.target.parentElement.previousElementSibling.textContent);
 
     // show alert
     ui.showAlert("Book successfully deleted", "success");
